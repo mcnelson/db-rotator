@@ -31,7 +31,7 @@ class DBRotator
   def download_dump
     verbose_message "Downloading dump..."
     bash_exec "rm -f #{local_dump_path}"
-    bash_exec "#{@config[:scp_command]} #{@config[:local_dump_destination]}/"
+    bash_exec "#{@config[:scp_command]} #{local_dump_path}"
   end
 
   def import_dump
@@ -42,7 +42,7 @@ class DBRotator
       mysql_exec "CREATE SCHEMA #{todays_dbname}"
 
       bash_exec %[#{@config[:unarchive_command]} #{local_dump_path} |
-                 #{@config[:unarchive_extra_pipe].join(' | ')} |
+                  #{extra_pipe}
                  #{@config[:mysql_command]} #{todays_dbname}]
     else
       raise "not enough disk space: #{raw_diskspace}"
@@ -50,22 +50,25 @@ class DBRotator
   end
 
   def prune
-    verbose_message "Pruning DBs..."
+    if @config[:maximum_dbs]
+      verbose_message "Pruning DBs..."
 
-    # keep all but the n newest
-    @schemas.sort_by(&:to_date).reverse[@config[:maximum_dbs]..-1].each do |schema|
-      mysql_exec "DROP SCHEMA IF EXISTS #{schema.name}"
+      if @schemas.count > (n = @config[:maximum_dbs].to_i)
+        @schemas.sort_by(&:to_date).reverse[n..-1].each do |schema|
+          mysql_exec "DROP SCHEMA IF EXISTS #{schema.name}"
+        end
+      end
     end
   end
 
   def grant_access
     verbose_message "Granting ..."
-    mysql_exec "GRANT ALL ON #{todays_dbname}.* to '%'@'localhost'"
+    mysql_exec "GRANT ALL ON #{todays_dbname}.* to `%`@`localhost`"
   end
 
   def populate_schemas
     @schemas = raw_schemas.split.each.with_object([]) do |schema_name, memo|
-      memo << Schema.new(schema_name) if schema_name =~ schema_regex
+      memo << Schema.new(schema_name, schema_regex) if schema_name =~ schema_regex
     end
   end
 
@@ -79,6 +82,10 @@ class DBRotator
 
       File.write(@config[:rails_db_yaml_path], hash.to_yaml)
     end
+  end
+
+  def extra_pipe
+    @config[:unarchive_extra_pipe] && "#{@config[:unarchive_extra_pipe].join(' | ')} |"
   end
 
   def todays_stamp
@@ -98,15 +105,19 @@ class DBRotator
   end
 
   def reasonable_diskspace?
-    @config[:reasonable_diskspace] && raw_diskspace.to_i >= @config[:reasonable_diskspace]
+    if @config[:reasonable_diskspace]
+      return raw_diskspace.to_i >= @config[:reasonable_diskspace]
+    end
+
+    true
   end
 
   def raw_diskspace
-    bash_exec "df -h /dev/mapper/vg_lange-lv_root | awk '{ print $4 }' | tail -n 1"
+    bash_exec "df -h `mysql -B -e 'select @@datadir;' | tail -1` | tail -1 | awk '{ print $2 }'"
   end
 
   def raw_schemas
-    bash_exec "#{@config[:mysql_command]} -B -e 'SHOW DATABASES;'"
+    mysql_exec "SHOW DATABASES"
   end
 
   def bash_exec(cmd, skip_raise = false)
@@ -118,7 +129,7 @@ class DBRotator
   end
 
   def mysql_exec(cmd)
-    bash_exec "#{@config[:mysql_command]} -e '#{cmd}'"
+    bash_exec "#{@config[:mysql_command]} -B -e '#{cmd}'"
   end
 
   def verbose_message(msg)
@@ -128,13 +139,14 @@ class DBRotator
   class Schema
     attr_reader :name
 
-    def initialize(name)
+    def initialize(name, schema_regex)
       @name = name
+      @schema_regex = schema_regex
     end
 
     def to_date
       Date.strptime(
-        name.match(schema_regex)[1],
+        name.match(@schema_regex)[1],
         TIME_FORMAT
       )
     end
