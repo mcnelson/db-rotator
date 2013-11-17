@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 
 require_relative '../lib/db_rotator_config.rb'
+require_relative '../lib/db_rotator.rb'
 
-opts = DBRotatorConfig.new.cli_parse(ARGV)
-puts opts
+config = DBRotatorConfig.new
+config.configure
+puts config.config
+rotator = DBRotator.new(config)
+rotator.rotate

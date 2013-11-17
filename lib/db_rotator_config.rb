@@ -1,5 +1,6 @@
 
 require 'optparse'
+require 'pathname'
 
 class DBRotatorConfig
   CONFIG = {
@@ -23,7 +24,15 @@ class DBRotatorConfig
     @config = {}
   end
 
-  def cli_parse(args)
+  def configure
+    ARGV.empty? ? from_file : from_cli
+
+    check_required
+    add_default_values
+    add_derived_values
+  end
+
+  def from_cli
     parser = OptionParser.new do |opts|
       opts.banner = "Usage: db-rotator [options]"
 
@@ -44,13 +53,22 @@ class DBRotatorConfig
       end
     end
 
-    parser.parse!(args)
-    add_default_values
+    parser.parse!(ARGV)
+  end
+
+  def check_required
+    REQUIRED.each { |k| raise "config option '#{k.to_s} is required'" if @config[k].nil? }
   end
 
   def add_default_values
     CONFIG.each do |key, o|
       @config[key] ||= o[2]
     end
+  end
+
+  def add_derived_values
+    # Figure out the dump filename
+    pn = Pathname.new(@config[:scp_command])
+    @config[:dump_filename] = pn.basename.to_s
   end
 end
