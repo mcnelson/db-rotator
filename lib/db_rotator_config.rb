@@ -3,6 +3,8 @@ require 'optparse'
 require 'pathname'
 
 class DBRotatorConfig
+  FILE = ".db-rotator.yml"
+
   CONFIG = {
     db_prefix:              [['-p', "--db-prefix PREFIX", "Database naming prefix"], nil],
     scp_command:            [['-c', "--scp-command COMMAND", "Command to retrive dump. Receives second arg of dump path"], nil],
@@ -15,6 +17,8 @@ class DBRotatorConfig
     reasonable_diskspace:   [['-s', "--minimum-diskspace [GB]", "Rough estimate of temporary disk space required to import a typical dump, in GB.", "Default: nil"], nil],
     rails_db_yaml_path:     [['-y', "--rails-db-yaml [PATH]", "Updates database name in your YAML file when given.", "Default: nil"], nil],
     rails_environments:     [['-e', "--rails-db-environments [ENV1,ENV2]", Array, "In conjunction with -y, which rails envs to update DB name for.", "Default [development]"], ["development"]],
+
+    config_file:            [['-f', "--config-file PATH", "Load configuration from .yml file"], nil],
   }
 
   REQUIRED = %i(db_prefix scp_command)
@@ -26,6 +30,10 @@ class DBRotatorConfig
 
   def configure
     ARGV.empty? ? from_file : from_cli
+
+    if @config[:config_file]
+      from_file
+    end
 
     check_required
     add_default_values
@@ -60,6 +68,19 @@ class DBRotatorConfig
     end
 
     parser.parse!(ARGV)
+  end
+
+  def from_file
+    raise "no such config file -- #{config_syspath}" unless File.exists?(config_syspath)
+    @config = YAML.load_file(config_syspath).each.with_object({}) { |(k, v), h| h[k.to_sym] = v }
+
+    if !(missing = REQUIRED.delete_if { |k| @config[k] }).empty?
+      raise "please set config option(s) in #{config_syspath}: #{missing.join(', ')}"
+    end
+  end
+
+  def config_syspath
+    @config[:config_file] || [ENV['HOME'], FILE].join('/')
   end
 
   def check_required
