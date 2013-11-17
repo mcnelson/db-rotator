@@ -21,8 +21,10 @@ Easy MySQL database rotation and pruning. Tell this utility where your nightly M
 
   You can also set up configuration at `~/.db-rotator.yml`, like so:
 
-      db_prefix: "appdump_"
-      scp_command: "scp db5:/opt/backups/latest.sql.bz2"
+  ```
+  db_prefix: "appdump_"
+  scp_command: "scp db5:/opt/backups/latest.sql.bz2"
+  ```
 
 
 3. For best results, put that in your crontab, and execute it when you're sure the nightly dump has finished.
