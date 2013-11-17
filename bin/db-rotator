@@ -1,0 +1,33 @@
+#!/bin/bash
+
+usage() {
+  cat << EOS
+DB Rotator
+
+Usage: db-rotator [options]
+
+Options:
+  (WIP, see Github page)
+EOS
+}
+
+P=""
+while getopts “hp:c:d:m:n:u:i:s:y:e:” OPTION
+do
+  case $OPTION in
+    h) usage exit 1;;
+    p) P=$OPTARG;;
+    c) C=$OPTARG;;
+
+    d) D=$OPTARG;;
+    m) M=$OPTARG;;
+    n) N=$OPTARG;;
+    u) U=$OPTARG;;
+    i) I=$OPTARG;;
+    s) S=$OPTARG;;
+    y) Y=$OPTARG;;
+    e) E=$OPTARG;;
+
+    ?) usage exit;;
+  esac
+done
