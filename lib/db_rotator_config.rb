@@ -3,6 +3,8 @@ require 'optparse'
 require 'pathname'
 
 class DBRotatorConfig
+  class FileNotFoundError < StandardError; end
+
   FILE = ".db-rotator.yml"
 
   CONFIG = {
@@ -29,19 +31,38 @@ class DBRotatorConfig
   end
 
   def configure
-    ARGV.empty? ? from_file : from_cli
+    begin
+      ARGV.empty? ? from_file : from_cli
 
-    if @config[:config_file]
-      from_file
+      if @config[:config_file]
+        from_file
+      end
+
+      check_required
+      add_default_values
+      add_derived_values
+    rescue FileNotFoundError => e
+      puts "There was a problem loading configuration: #{e.message}"
+      puts cli_parser.summarize
+      exit
     end
-
-    check_required
-    add_default_values
-    add_derived_values
   end
 
   def from_cli
-    parser = OptionParser.new do |opts|
+    cli_parser.parse!(ARGV)
+  end
+
+  def from_file
+    raise FileNotFoundError, "no such config file -- #{config_syspath}" unless File.exists?(config_syspath)
+    @config = YAML.load_file(config_syspath).each.with_object({}) { |(k, v), h| h[k.to_sym] = v }
+
+    if !(missing = REQUIRED.delete_if { |k| @config[k] }).empty?
+      raise "please set config option(s) in #{config_syspath}: #{missing.join(', ')}"
+    end
+  end
+
+  def cli_parser
+    OptionParser.new do |opts|
       opts.banner = "Usage: db-rotator [options]"
 
       CONFIG.each do |key, pair|
@@ -65,17 +86,6 @@ class DBRotatorConfig
         puts opts
         exit
       end
-    end
-
-    parser.parse!(ARGV)
-  end
-
-  def from_file
-    raise "no such config file -- #{config_syspath}" unless File.exists?(config_syspath)
-    @config = YAML.load_file(config_syspath).each.with_object({}) { |(k, v), h| h[k.to_sym] = v }
-
-    if !(missing = REQUIRED.delete_if { |k| @config[k] }).empty?
-      raise "please set config option(s) in #{config_syspath}: #{missing.join(', ')}"
     end
   end
 
