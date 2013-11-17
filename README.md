@@ -11,17 +11,27 @@ Easy MySQL database rotation and pruning. Tell this utility where your nightly M
   - SSH access to your most current MySQL backup as a single endpoint, like a symlink that updates nightly.
   - root access to destination MySQL instance. Recommended to setup username/password in `~/.my.cnf` so that "mysql" works without `-u` or `-p`.
 
-2. You need to configure, at minimum, the following. Configuration can be passed as command line arguments or set in `~/.db-rotator.yml`.
-  - **db_prefix** (-p). Database naming prefix. Example: `myproject_`, which might name a DB as myproject_09182013.
-  - **scp_command** (-c). Receives second arg of dump path. Example: `scp hostname:/path/to/mysql/backups/backup_filename.sql.bz2`
+2. Configure the required options (see below). Configuration can be passed as command line arguments or set in `~/.db-rotator.yml`.
 
   Minimal usage example:
 
   `db-rotator -p 'appdump_' -c 'scp db5:/opt/backups/latest.sql.bz2'`
 
+  Run `db-rotator -h` for the list of configuration options from CLI.
+
+  You can also set up configuration at `~/.db-rotator.yml`, like so:
+
+    db_prefix: "appdump_"
+    scp_command: "scp db5:/opt/backups/latest.sql.bz2"
+
+
 3. For best results, put that in your crontab, and execute it when you're sure the nightly dump has finished.
 
   `0 3 * * * db-rotator -p 'appdump_' -c 'scp db5:/opt/backups/latest.sql.bz2' >> /some/log/file`
+
+## Required Configuration
+  - **db_prefix** (-p). Database naming prefix. Example: `myproject_`, which might name a DB as myproject_09182013.
+  - **scp_command** (-c). Receives second arg of dump path. Example: `scp hostname:/path/to/mysql/backups/backup_filename.sql.bz2`
 
 ## Optional Configuration
 
