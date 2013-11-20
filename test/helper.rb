@@ -17,21 +17,3 @@ def dummy_config(config={})
     cfg.add_derived_values
   end
 end
-
-MiniTest::Unit::TestCase.class_eval do
-
-  alias_method :old_teardown, :teardown
-  def teardown
-    clean_test_dbs
-
-    old_teardown
-  end
-
-  def clean_test_dbs
-    `mysql -B -e 'SHOW SCHEMAS;'`.split.each do |schema|
-      if schema.match(/^$#{TEST_SCHEMA_PREFIX}\*/)
-        puts 'mysql -e "DROP SCHEMA "#{schema}"'
-      end
-    end
-  end
-end

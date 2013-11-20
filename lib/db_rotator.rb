@@ -63,7 +63,7 @@ class DBRotator
 
   def grant_access
     verbose_message "Granting ..."
-    mysql_exec "GRANT ALL ON #{todays_dbname}.* to `%`@`localhost`"
+    mysql_exec "GRANT ALL ON #{todays_dbname}.* to #{current_user}"
   end
 
   def populate_schemas
@@ -118,6 +118,10 @@ class DBRotator
 
   def raw_schemas
     mysql_exec "SHOW DATABASES"
+  end
+
+  def current_user
+    mysql_exec("SELECT current_user()").split("\n").last
   end
 
   def bash_exec(cmd, skip_raise = false)
