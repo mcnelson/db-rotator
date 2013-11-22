@@ -13,8 +13,8 @@ describe DBRotator do
     "__minitest_#{ time.strftime(DBRotator::TIME_FORMAT) }"
   end
 
-  describe "integration" do
-    it "works" do
+  describe "integration test" do
+    it "rotates databases correctly" do
       dbr = DBRotator.new(dummy_config)
 
       t1 = Time.new(2013, 1, 1)
@@ -38,7 +38,7 @@ describe DBRotator do
         `mysql -B -e 'SHOW SCHEMAS;'`.must_include(dbname_with(t3))
         `mysql -B -e 'SHOW SCHEMAS;'`.must_include(dbname_with(t2))
 
-        `mysql -B -e 'SHOW SCHEMAS;'`.must_include(dbname_with(t1))
+        `mysql -B -e 'SHOW SCHEMAS;'`.wont_include(dbname_with(t1))
       end
     end
   end
