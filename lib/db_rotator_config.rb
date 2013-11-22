@@ -126,7 +126,13 @@ class DBRotatorConfig
 
   def add_derived_values
     # Figure out the dump filename
-    pn = Pathname.new(@config[:scp_command])
+    cmd = if @config[:scp_command].strip.match(/^scp/)
+            @config[:scp_command].split(':').last
+          else
+            @config[:scp_command]
+          end
+
+    pn = Pathname.new(cmd)
     @config[:dump_filename] = pn.basename.to_s
   end
 end

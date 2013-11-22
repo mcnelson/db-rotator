@@ -5,6 +5,5 @@ require_relative '../lib/db_rotator.rb'
 
 config = DBRotatorConfig.new
 config.configure
-puts config.config
 rotator = DBRotator.new(config)
 rotator.rotate
