@@ -6,8 +6,8 @@ Easy MySQL database rotation and pruning -- downloads and imports a mysql dump, 
 `gem install db-rotator`
 
 ## Requirements
-- Root access to destination MySQL instance. If you're using this on a local dev environment, it's recommended to setup username/password in `~/.my.cnf` so that "mysql" works without `-u` or `-p`.
-- You have disk space for N+1 database instances, where N is the amount you want to prune to (maximum DBs).
+- This tool creates and drops databases, and runs any SQL in your dump (duh), so you have to give it a user that can do all of that. If you're using this on a local dev environment, it's recommended to setup user/pass in `~/.my.cnf` so that "mysql" works without `-u` or `-p`. You can configure DBRotator to work with any credentials, however. See config section.
+- Disk space for N+1 database instances, where N is the amount you want to prune to (maximum DBs).
 
 ## Usage
 
@@ -39,7 +39,7 @@ Run: `db-rotator -f /whatever/rotator-config.conf`
 
 ## Configuration
 ### Required
-#### **db_prefix (-p)
+#### db_prefix (-p)
 Database naming prefix that will apply to all dumps rotated with DBRotator.
 Example: `myproject_`, which might name a DB as myproject_09182013.
 
@@ -49,7 +49,9 @@ Example: `scp hostname:/path/to/mysql/backups/backup_filename.sql.bz2`
 
 ### Optional
 
-- **local_dump_destination** (-d). Where to put the dump, as a directory. Won't be deleted after running rotator. Default: `/tmp`
+Run `db-rotator` without any options to show these config options.
+
+- **local_dump_destination** (-d). Where to put the dump, as a directory. The dump won't be deleted after running rotator. Default: `/tmp`
 - **mysql_command** (-m). Used for all database management operations. Default: `mysql`
 - **maximum_dbs** (-n). Maximum number of DBs to maintain, or null to disable pruning. Default: 2
 - **unarchive_command** (-u). How to unarchive your dump to standard output. Default: `bzip2 -cd`
