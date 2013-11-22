@@ -1,40 +1,54 @@
 # DBRotator
-Easy MySQL database rotation and pruning. Tell this utility where your nightly MySQL backup is, and it downloads, imports, and organizes the dump, pruning all but the newest N databases.
+Easy MySQL database rotation and pruning. This downloads and imports a mysql dump, and then deletes all but N databases, keeping only the newest.
 
 ## Installation
 
 `gem install db-rotator`
 
+## Requirements
+- SSH access to your most current MySQL backup as a single endpoint, like a symlink that updates nightly.
+- Root access to destination MySQL instance. If you're using this on a local dev environment, it's recommended to setup username/password in `~/.my.cnf` so that "mysql" works without `-u` or `-p`.
+- You have disk space for N+1 database instances, where N is the amount you want to prune to (maximum DBs).
+
 ## Usage
 
-1. First off, the following is required:
-  - SSH access to your most current MySQL backup as a single endpoint, like a symlink that updates nightly.
-  - root access to destination MySQL instance. Recommended to setup username/password in `~/.my.cnf` so that "mysql" works without `-u` or `-p`.
+**Minimal usage:**
 
-2. Configure the required options (see below). Configuration can be passed as command line arguments or set in `~/.db-rotator.yml`.
+Run: `db-rotator -p 'appdump_' -c 'scp db5:/opt/backups/latest.sql.bz2'`
 
-  Minimal usage example:
+**Or, from default config file** `~/.db-rotator.yml`:
 
-  `db-rotator -p 'appdump_' -c 'scp db5:/opt/backups/latest.sql.bz2'`
+```
+db_prefix: "appdump_"
+scp_command: "scp db5:/opt/backups/latest.sql.bz2"
+```
 
-  Run `db-rotator -h` for the list of configuration options from CLI.
+Run: `db-rotator`
 
-  You can also set up configuration at `~/.db-rotator.yml`, and omit any CLI options, like so:
+**Or, from a specific config file** `/whatever/rotator-config.conf`:
 
-  ```
-  db_prefix: "appdump_"
-  scp_command: "scp db5:/opt/backups/latest.sql.bz2"
-  ```
+```
+db_prefix: "appdump_"
+scp_command: "scp db5:/opt/backups/latest.sql.bz2"
+```
 
-3. Put `db-rotator` in your crontab, and execute it when you're sure your nightly dump has finished.
+Run: `db-rotator -f /whatever/rotator-config.conf`
 
-  `0 3 * * * db-rotator -p 'appdump_' -c 'scp db5:/opt/backups/latest.sql.bz2' >> /some/log/file`
+**Rotate nightly**, so you'll always have a fresh dump during your workday:
 
-## Required Configuration
-  - **db_prefix** (-p). Database naming prefix. Example: `myproject_`, which might name a DB as myproject_09182013.
-  - **scp_command** (-c). Receives second arg of dump path. Example: `scp hostname:/path/to/mysql/backups/backup_filename.sql.bz2`
+`0 3 * * * bash -lc "db-rotator -f /whatever/rotator-config.conf >> /some/log/file"`
 
-## Optional Configuration
+## Configuration
+### Required
+#### **db_prefix (-p)
+Database naming prefix that will apply to all dumps rotated with DBRotator.
+Example: `myproject_`, which might name a DB as myproject_09182013.
+
+#### scp_command (-c)
+How DBRotator retrieves your dumps. This ideally is an scp command, but really can be any command that receives a second argument of the dump destination.
+Example: `scp hostname:/path/to/mysql/backups/backup_filename.sql.bz2`
+
+### Optional
 
 - **local_dump_destination** (-d). Where to put the dump, as a directory. Won't be deleted after running rotator. Default: `/tmp`
 - **mysql_command** (-m). Used for all database management operations. Default: `mysql`
