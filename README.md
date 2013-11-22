@@ -38,6 +38,9 @@ Run: `db-rotator -f /whatever/rotator-config.conf`
 `0 3 * * * bash -lc "db-rotator -f /whatever/rotator-config.conf >> /some/log/file"`
 
 ## Configuration
+
+Run `db-rotator` without any options to show config options.
+
 ### Required
 #### db_prefix (-p)
 Database naming prefix that will apply to all dumps rotated with DBRotator.
@@ -48,8 +51,6 @@ How DBRotator retrieves your dumps. This ideally is an scp command, but really c
 Example: `scp hostname:/path/to/mysql/backups/backup_filename.sql.bz2`
 
 ### Optional
-
-Run `db-rotator` without any options to show these config options.
 
 - **local_dump_destination** (-d). Where to put the dump, as a directory. The dump won't be deleted after running rotator. Default: `/tmp`
 - **mysql_command** (-m). Used for all database management operations. Default: `mysql`
