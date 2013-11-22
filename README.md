@@ -1,12 +1,11 @@
 # DBRotator
-Easy MySQL database rotation and pruning. This downloads and imports a mysql dump, and then deletes all but N databases, keeping only the newest.
+Easy MySQL database rotation and pruning -- downloads and imports a mysql dump, and then deletes all but N databases, keeping only the newest. This tool is geared toward rotating out achived MySQL backups to your local dev environment. So it works best when you have a most-current MySQL backup as a symlink that updates nightly.
 
 ## Installation
 
 `gem install db-rotator`
 
 ## Requirements
-- SSH access to your most current MySQL backup as a single endpoint, like a symlink that updates nightly.
 - Root access to destination MySQL instance. If you're using this on a local dev environment, it's recommended to setup username/password in `~/.my.cnf` so that "mysql" works without `-u` or `-p`.
 - You have disk space for N+1 database instances, where N is the amount you want to prune to (maximum DBs).
 
