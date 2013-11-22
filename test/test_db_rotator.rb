@@ -29,8 +29,16 @@ describe DBRotator do
 
       Time.stub(:now, t2) do
         dbr.rotate
-        `mysql -B -e 'SHOW SCHEMAS;'`.must_include(dbname_with(t1))
         `mysql -B -e 'SHOW SCHEMAS;'`.must_include(dbname_with(t2))
+        `mysql -B -e 'SHOW SCHEMAS;'`.must_include(dbname_with(t1))
+      end
+
+      Time.stub(:now, t3) do
+        dbr.rotate
+        `mysql -B -e 'SHOW SCHEMAS;'`.must_include(dbname_with(t3))
+        `mysql -B -e 'SHOW SCHEMAS;'`.must_include(dbname_with(t2))
+
+        `mysql -B -e 'SHOW SCHEMAS;'`.must_include(dbname_with(t1))
       end
     end
   end
