@@ -114,7 +114,6 @@ class DBRotatorConfig
   end
 
   def config_yaml
-    require 'pry'; binding.pry
     @config.reject { |k, _| EXCLUDE_FROM_GENERATE_FILE.include?(k) } .to_yaml
   end
 
