@@ -19,6 +19,9 @@ class DBRotatorConfig
     reasonable_diskspace:   [['-s', "--minimum-diskspace [GB]", "Rough estimate of temporary disk space required to import a typical dump, in GB."], nil],
     rails_db_yaml_path:     [['-y', "--rails-db-yaml [PATH]", "Updates database name in your YAML file when given.", "Default: nil"], nil],
     rails_environments:     [['-e', "--rails-db-environments [ENV1,ENV2]", Array, "In conjunction with -y, which rails envs to update DB name for. Default: development"], ["development"]],
+    on_success:             [['-S', "--on_success [COMMAND]", "Executes command on successful completion"], nil],
+    on_failure:             [['-F', "--on_failure [COMMAND]", "Executes command if there is an error"], nil],
+
 
     config_file:            [['-f', "--config-file PATH", "Runs rotator with configuration from this .yml file."], nil],
   }

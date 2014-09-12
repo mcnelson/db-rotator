@@ -6,12 +6,21 @@ class DBRotator
   def initialize(config)
     @config = config.config
     @schemas = []
-    populate_schemas
+    begin
+      populate_schemas
+    rescue
+      on_failure $!
+    end
   end
 
   def rotate
-    refresh
-    update_db_yaml
+    begin
+      refresh
+      update_db_yaml
+      on_success
+    rescue
+      on_failure $!
+    end
   end
 
   def refresh
@@ -27,6 +36,18 @@ class DBRotator
   end
 
   private
+
+  def on_success
+    bash_exec "#{@config[:on_success]}" if @config[:on_success]
+  end
+
+  def on_failure(err)
+    if @config[:on_failure]
+      bash_exec "#{@config[:on_failure]} #{err.class.name} '#{err.message}'"
+    else
+      raise err
+    end
+  end
 
   def download_dump
     verbose_message "Downloading dump..."
