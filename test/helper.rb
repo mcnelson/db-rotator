@@ -10,7 +10,8 @@ def dummy_config(config={})
       db_prefix:   TEST_SCHEMA_PREFIX,
       scp_command: "cp test/fixtures/basic_dump.sql.bz2",
 
-      local_dump_destination: "/tmp"
+      local_dump_destination: "/tmp",
+      mysql_command: "mysql -u root"
     }.merge(config))
 
     cfg.add_default_values
