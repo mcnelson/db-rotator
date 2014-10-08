@@ -6,6 +6,7 @@ class DBRotator
   def initialize(config)
     @config = config.config
     @schemas = []
+
     begin
       populate_schemas
     rescue

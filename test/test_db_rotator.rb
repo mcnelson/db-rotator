@@ -57,7 +57,7 @@ describe DBRotator do
       it "calls on_failure" do
         dbr = DBRotator.new(dummy_config(
                                    on_failure: 'touch failure && true',
-                                   mysql_command: 'crap command'))
+                                   mysql_command: 'crap command 2> /dev/null'))
         dbr.rotate
         FileTest.exists?('failure').must_equal true
         `rm failure`
