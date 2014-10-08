@@ -44,23 +44,28 @@ describe DBRotator do
   end
 
   describe "callbacks" do
+    before do
+      `test -e /tmp/success && rm /tmp/success`
+      `test -e /tmp/failure && rm /tmp/failure`
+    end
+
     describe "on_success" do
       it "calls on_success when specified" do
-        dbr = DBRotator.new(dummy_config(on_success: 'touch success'))
+        dbr = DBRotator.new(dummy_config(on_success: 'touch /tmp/success'))
         dbr.rotate
-        FileTest.exists?('success').must_equal true
-        `rm success`
+        FileTest.exists?('/tmp/success').must_equal true
+        FileTest.exists?('/tmp/failure').must_equal false
       end
     end
 
     describe "on_failure" do
       it "calls on_failure" do
         dbr = DBRotator.new(dummy_config(
-                                   on_failure: 'touch failure && true',
-                                   mysql_command: 'crap command'))
+                                   on_failure: 'touch /tmp/failure && true',
+                                   mysql_command: 'crap command 2> /dev/null'))
         dbr.rotate
-        FileTest.exists?('failure').must_equal true
-        `rm failure`
+        FileTest.exists?('/tmp/success').must_equal false
+        FileTest.exists?('/tmp/failure').must_equal true
       end
     end
   end
