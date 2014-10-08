@@ -60,3 +60,5 @@ Example: `scp hostname:/path/to/mysql/backups/backup_filename.sql.bz2`
 - **reasonable_diskspace** (-s). Rough estimate of temporary disk space required to import a typical dump, in GB. Ensures this amount of space is free before importing. Default: nil
 - **rails_db_yaml_path** (-y). Updates database name in your YAML file. Example: `/path/to/railsroot/config/database.yml` Default: nil
 - **rails_environments** (-e). In conjunction with -y, which rails envs to update DB name for. If passing multiple via command line, use a comma to separate, like `-e "development,staging"`. Default: ["development"]
+- **on_success** (-S). Executes COMMAND on successful completion
+- **on_failure** (-F). Executes COMMAND if there is an error
