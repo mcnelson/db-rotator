@@ -7,21 +7,18 @@ class DBRotator
     @config = config.config
     @schemas = []
 
-    begin
-      populate_schemas
-    rescue
-      on_failure $!
-    end
+    populate_schemas
+  rescue
+    on_failure $!
   end
 
   def rotate
-    begin
-      refresh
-      update_db_yaml
-      on_success
-    rescue
-      on_failure $!
-    end
+    refresh
+    update_db_yaml
+    on_success
+
+  rescue
+    on_failure $!
   end
 
   def refresh
